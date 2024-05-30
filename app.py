@@ -7,6 +7,10 @@ import os
 app = Flask(__name__)
 init_db(app)
 
+@app.route('/')
+def home():
+    return "Hello welcome to the app, please use endpoint : 'https://uniqueaccounts.onrender.com/identify' to test the usecases for the assignment ";
+
 @app.route('/identify', methods=['POST'])
 def identify():
     data = request.get_json()
@@ -87,7 +91,6 @@ def identify():
     secondary_contact_ids = [contact.id for contact in secondary_contacts]
     emails = [contact.email for contact in secondary_contacts] + [Contact.query.get(primary_contact_id).email]
     phone_numbers = [contact.phone_number for contact in secondary_contacts] + [Contact.query.get(primary_contact_id).phone_number]
-    # secondary_contact_ids = [c.id for c in contacts if c.id != primary_contact_id]
 
     response = {
         "contact": {
