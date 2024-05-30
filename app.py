@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from models import Contact
 from database import db, init_db
 import datetime
+import os
 
 app = Flask(__name__)
 init_db(app)
