@@ -8,9 +8,9 @@ class Contact(db.Model):
     link_precedence =db.Column(db.String(15))
     created_at = db.Column(db.DateTime, nullable=False)
     updated_at = db.Column(db.DateTime, nullable=False)
-    deleted_at = db.Column(db.DateTime, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
 
-    def __init__(self, email, phone_number, linked_id, link_precedence, created_at, updated_at):
+    def __init__(self, email, phone_number, linked_id, link_precedence, created_at, updated_at, deleted_at):
         self.email = email
         self.phone_number = phone_number
         self.linked_id = linked_id
