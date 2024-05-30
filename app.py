@@ -76,16 +76,19 @@ def identify():
                 db.session.add(new_contact)
                 db.session.commit()
     else:
-        primary_contact_id = Contact.query.count() + 1
-        new_contact = Contact(email=email,
-                              phone_number=phone_number,
-                              linked_id=None,
-                              link_precedence="Primary",
-                              created_at=datetime.datetime.now(),
-                              updated_at=datetime.datetime.now(),
-                              deleted_at=None)
-        db.session.add(new_contact)
-        db.session.commit()
+        if email or phone_number:
+            primary_contact_id = Contact.query.count() + 1
+            new_contact = Contact(email=email,
+                                  phone_number=phone_number,
+                                  linked_id=None,
+                                  link_precedence="Primary",
+                                  created_at=datetime.datetime.now(),
+                                  updated_at=datetime.datetime.now(),
+                                  deleted_at=None)
+            db.session.add(new_contact)
+            db.session.commit()
+        else:
+            return "No contact details were provided"
 
     secondary_contacts = Contact.query.filter_by(linked_id=primary_contact_id).all()
     secondary_contact_ids = [contact.id for contact in secondary_contacts]
