@@ -3,8 +3,14 @@ from models import Contact
 from database import db, init_db
 import datetime
 import os
+from config import config
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+env_name = os.getenv('FLASK_ENV', 'development')
+app.config.from_object(config[env_name])
 init_db(app)
 
 @app.route('/')
