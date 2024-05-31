@@ -15,3 +15,10 @@ config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig
 }
+
+def init_db(app):
+    environment = os.getenv('FLASK_ENV', 'development')
+    app.config.from_object(config[environment])
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
