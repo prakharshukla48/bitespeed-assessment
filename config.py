@@ -1,4 +1,5 @@
 import os
+from database import db
 
 class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
