@@ -5,7 +5,7 @@ db = SQLAlchemy()
 
 def init_db(app):
     if os.environ.get('FLASK_ENV') == 'production':
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://prakhar:sxlmpNyFJm9Lm18cR6ip8rGWv9FJT79x@dpg-cpcd6v0l5elc73ff3200-a.singapore-postgres.render.com/bitespeed_s884'
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL_PROD')
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///contacts.db'
 
