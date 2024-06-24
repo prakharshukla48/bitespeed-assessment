@@ -5,19 +5,77 @@ import datetime
 import os
 from config import config
 from dotenv import load_dotenv
+from flask import Flask, render_template, redirect, url_for
+import time, hashlib
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates')
 env_name = os.getenv('FLASK_ENV', 'development')
 app.config.from_object(config[env_name])
 init_db(app)
+tokens = {}
 
-@app.route('/')
+def verify_token(token):
+    token_data = tokens.get(token)
+    if not token_data:
+        return None
+    if token_data["expires_at"] < time.time():
+        del tokens[token]
+        return None
+    return token_data["email"]
+
+def token_required(f):
+    def wrap(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith("Bearer"):
+            return jsonify({"msg": "Missing or invalid token"}), 401
+
+        token = auth_header.split(" ")[1]
+        email = verify_token(token)
+        if not email:
+            return jsonify({"msg": "Invalid or expired token"}), 401
+
+        request.user_email = email
+        return f(*args, **kwargs)
+    wrap.__name__ = f.__name__
+    return wrap
+
+
+def generate_token(email, expires_in=3600):
+    expiration_time = time.time() + expires_in
+    token = hashlib.sha256(f"{email}{expiration_time}{app.secret_key}".encode()).hexdigest()
+    tokens[token] = {"email": email, "expires_at": expiration_time}
+    return token
+
+@app.route("/submit", methods=['POST'])
+def submit():
+    print("we are in the submit function")
+    user_email = request.form['email']
+    user_phone = request.form['phone']
+    try:
+        contact = Contact.query.filter_by(email=user_email, phone_number=user_phone).first()
+    except :
+        return f" email : {user_email} or phone : {user_phone} not found"
+    if contact :
+        token = generate_token(contact.email)
+        return f'Thank you, {contact.email}!. here is your access token {token}'
+    else:
+        return jsonify({"msg": "Invalid credentials"}), 401
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route('/home')
 def home():
     return "Hello welcome to the app, please use endpoint : 'https://uniqueaccounts.onrender.com/identify' to test the usecases for the assignment ";
 
+
+
 @app.route('/identify', methods=['POST'])
+@token_required
 def identify():
     data = request.get_json()
     email = data.get('email')
@@ -30,7 +88,7 @@ def identify():
         primary_phone = Contact.query.filter_by(phone_number=phone_number).first()
 
     if primary_email and primary_phone:
-        print("botth email and phone found")
+        print("both email and phone found")
 
         linked_id_email = primary_email.linked_id
         linked_id_phone = primary_phone.linked_id
