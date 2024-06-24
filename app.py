@@ -50,7 +50,6 @@ def generate_token(email, expires_in=3600):
 
 @app.route("/submit", methods=['POST'])
 def submit():
-    print("we are in the submit function")
     user_email = request.form['email']
     user_phone = request.form['phone']
     try:
@@ -64,9 +63,31 @@ def submit():
         return jsonify({"msg": "Invalid credentials"}), 401
 
 
+@app.route("/register", methods=['POST'])
+def register():
+    user_email = request.form['email']
+    user_phone = request.form['phone']
+    primary_contact_id = Contact.query.count() + 1
+    new_contact = Contact(email=user_email,
+                          phone_number=user_phone,
+                          linked_id=None,
+                          link_precedence="Primary",
+                          created_at=datetime.datetime.now(),
+                          updated_at=datetime.datetime.now(),
+                          deleted_at=None)
+    db.session.add(new_contact)
+    db.session.commit()
+    return f'Thank you, {user_email} for registering!'
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/signup")
+def signup():
+    return render_template("signup.html")
+
 
 @app.route('/home')
 def home():
