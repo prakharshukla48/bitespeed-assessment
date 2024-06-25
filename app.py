@@ -7,6 +7,7 @@ from config import config
 from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for
 import time, hashlib
+import requests
 
 load_dotenv()
 
@@ -35,7 +36,6 @@ def token_required(f):
         email = verify_token(token)
         if not email:
             return jsonify({"msg": "Invalid or expired token"}), 401
-
         request.user_email = email
         return f(*args, **kwargs)
     wrap.__name__ = f.__name__
@@ -58,7 +58,23 @@ def submit():
         return f" email : {user_email} or phone : {user_phone} not found"
     if contact :
         token = generate_token(contact.email)
-        return f'Thank you, {contact.email}!. here is your access token {token}'
+        data = {
+            "phone": user_phone,
+            "email": user_email
+        }
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        # Call the API from within this route
+        api_url = "http://127.0.0.1:5000/identify"  # Use the actual API URL
+        response = requests.post(api_url, json=data, headers=headers)
+        if response.status_code == 200:
+            return f'Thank you, {contact.email} Data submitted successfully!!. here is the data {response.json()}'
+        else:
+            message = "Failed to submit data."
     else:
         return jsonify({"msg": "Invalid credentials"}), 401
 
@@ -92,8 +108,6 @@ def signup():
 @app.route('/home')
 def home():
     return "Hello welcome to the app, please use endpoint : 'https://uniqueaccounts.onrender.com/identify' to test the usecases for the assignment ";
-
-
 
 @app.route('/identify', methods=['POST'])
 @token_required
